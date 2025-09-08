@@ -28,17 +28,24 @@ def load_config():
 
     with open(config_path, "r", encoding="utf-8") as f:
         content = f.read()
-    
+
     # 處理環境變量替換
     import re
+
     def replace_env_vars(match):
         env_var = match.group(1)
         default_value = match.group(2) if match.group(2) else ""
-        return os.getenv(env_var, default_value)
-    
+        result = os.getenv(env_var, default_value)
+        logger.info(f"環境變量替換: {env_var} -> {result}")
+        return result
+
     # 替換 ${VAR:-default} 格式的環境變量
-    content = re.sub(r'\$\{([^:}]+):-([^}]*)\}', replace_env_vars, content)
+    content = re.sub(r"\$\{([^:}]+):-([^}]*)\}", replace_env_vars, content)
     
+    # 調試：打印替換後的內容
+    logger.info("配置文件內容（替換環境變量後）:")
+    logger.info(content)
+
     config = yaml.safe_load(content)
     return config
 
