@@ -1,0 +1,109 @@
+[2025-09-07 17:25:01.557852 +08:00 INFO] [login] personal_id="41610792"
+[2025-09-07 17:44:32.040336 +08:00 INFO] [login] personal_id="41610792"
+[2025-09-07 17:44:32.158087 +08:00 INFO] this account require 2fa
+[2025-09-07 17:44:32.351963 +08:00 INFO] [future_option_mapping]: 152.930375ms
+[2025-09-07 17:44:32.388621 +08:00 INFO] [future_option_mapping]: 35.320083ms
+[2025-09-07 17:44:32.529675 +08:00 INFO] [future_option_mapping]: 140.566625ms
+[2025-09-07 17:44:32.596943 +08:00 INFO] [future_option_mapping]: 61.874833ms
+[2025-09-07 17:44:55.458780 +08:00 INFO] [login] personal_id="41610792"
+[2025-09-07 17:44:55.508327 +08:00 INFO] this account require 2fa
+[2025-09-07 17:44:55.810324 +08:00 INFO] [future_option_mapping]: 245.629209ms
+[2025-09-07 17:44:55.847267 +08:00 INFO] [future_option_mapping]: 35.541041ms
+[2025-09-07 17:44:55.999469 +08:00 INFO] [future_option_mapping]: 151.664292ms
+[2025-09-07 17:44:56.089265 +08:00 INFO] [future_option_mapping]: 84.56875ms
+[2025-09-07 17:45:26.412043 +08:00 INFO] [login] personal_id="41610792"
+[2025-09-07 17:45:26.555084 +08:00 INFO] this account require 2fa
+[2025-09-07 17:45:26.710103 +08:00 INFO] [future_option_mapping]: 112.930292ms
+[2025-09-07 17:45:26.765375 +08:00 INFO] [future_option_mapping]: 53.877834ms
+[2025-09-07 17:45:26.873641 +08:00 INFO] [future_option_mapping]: 107.758416ms
+[2025-09-07 17:45:27.052102 +08:00 INFO] [future_option_mapping]: 173.060875ms
+[2025-09-07 17:47:22.266258 +08:00 INFO] [login] personal_id="41610792"
+[2025-09-07 17:47:22.338620 +08:00 INFO] this account require 2fa
+[2025-09-07 17:47:22.638308 +08:00 INFO] [future_option_mapping]: 245.315125ms
+[2025-09-07 17:47:22.714687 +08:00 INFO] [future_option_mapping]: 74.817292ms
+[2025-09-07 17:47:22.970681 +08:00 INFO] [future_option_mapping]: 255.480542ms
+[2025-09-07 17:47:23.078558 +08:00 INFO] [future_option_mapping]: 102.378041ms
+[2025-09-07 17:50:29.531076 +08:00 INFO] [login] personal_id="41610792"
+[2025-09-07 17:50:44.978208 +08:00 INFO] [login] personal_id="41610792"
+[2025-09-07 17:51:31.864554 +08:00 INFO] [login] personal_id="53521100"
+[2025-09-07 17:55:57.611771 +08:00 INFO] [login] personal_id="41610792"
+[2025-09-07 17:56:13.660861 +08:00 INFO] [login] personal_id="53521100"
+[2025-09-07 17:56:29.378353 +08:00 INFO] [login] personal_id="41610792"
+[2025-09-07 18:00:44.570030 +08:00 INFO] [login] personal_id="41610792"
+[2025-09-07 18:00:56.008704 +08:00 INFO] [login] personal_id="53521100"
+[2025-09-07 18:01:59.579443 +08:00 INFO] [login] personal_id="53521100"
+[2025-09-07 18:02:13.224861 +08:00 INFO] [login] personal_id="58581758"
+[2025-09-07 18:02:13.482931 +08:00 INFO] this account require 2fa
+[2025-09-07 18:02:13.635874 +08:00 INFO] [future_option_mapping]: 111.715083ms
+[2025-09-07 18:02:13.678548 +08:00 INFO] [future_option_mapping]: 41.254125ms
+[2025-09-07 18:02:13.882779 +08:00 INFO] [future_option_mapping]: 203.698333ms
+[2025-09-07 18:02:13.956726 +08:00 INFO] [future_option_mapping]: 68.834042ms
+[2025-09-07 18:02:14.197307 +08:00 INFO] [get inventories] account=Account { branch_no: "20203", account: "7900015", account_type: "stock", name: "test" }
+[2025-09-07 18:02:14.912604 +08:00 INFO] [inventory_result]: 715.2525ms
+[2025-09-07 18:02:14.913065 +08:00 INFO] [get_order_results] account=Account { branch_no: "20203", account: "7900015", account_type: "stock", name: "test" }
+[2025-09-07 18:02:15.068335 +08:00 INFO] [order_result]: 155.2445ms
+[2025-09-07 18:02:15.325428 +08:00 INFO] [logout] user manually logout
+[2025-09-07 18:04:51.703507 +08:00 INFO] [login] personal_id="58581758"
+[2025-09-07 18:04:51.762427 +08:00 INFO] this account require 2fa
+[2025-09-07 18:04:52.057621 +08:00 INFO] [future_option_mapping]: 237.669458ms
+[2025-09-07 18:04:52.100342 +08:00 INFO] [future_option_mapping]: 41.257583ms
+[2025-09-07 18:04:52.206840 +08:00 INFO] [future_option_mapping]: 105.986667ms
+[2025-09-07 18:04:52.275119 +08:00 INFO] [future_option_mapping]: 63.08475ms
+[2025-09-07 18:04:52.448549 +08:00 INFO] [get inventories] account=Account { branch_no: "20203", account: "7900015", account_type: "stock", name: "test" }
+[2025-09-07 18:04:52.518560 +08:00 INFO] [inventory_result]: 69.965458ms
+[2025-09-07 18:04:52.518954 +08:00 INFO] [get_order_results] account=Account { branch_no: "20203", account: "7900015", account_type: "stock", name: "test" }
+[2025-09-07 18:04:52.641565 +08:00 INFO] [order_result]: 122.582834ms
+[2025-09-07 18:04:52.643659 +08:00 INFO] [logout] user manually logout
+[2025-09-07 18:07:02.522720 +08:00 INFO] [login] personal_id="58581758"
+[2025-09-07 18:07:02.607096 +08:00 INFO] this account require 2fa
+[2025-09-07 18:07:02.788308 +08:00 INFO] [future_option_mapping]: 137.537667ms
+[2025-09-07 18:07:02.828295 +08:00 INFO] [future_option_mapping]: 38.571167ms
+[2025-09-07 18:07:03.210674 +08:00 INFO] [future_option_mapping]: 381.83575ms
+[2025-09-07 18:07:03.336425 +08:00 INFO] [future_option_mapping]: 121.040917ms
+[2025-09-07 18:07:03.556149 +08:00 INFO] [get inventories] account=Account { branch_no: "20203", account: "7900015", account_type: "stock", name: "test" }
+[2025-09-07 18:07:03.634096 +08:00 INFO] [inventory_result]: 77.917833ms
+[2025-09-07 18:07:03.634667 +08:00 INFO] [get_order_results] account=Account { branch_no: "20203", account: "7900015", account_type: "stock", name: "test" }
+[2025-09-07 18:07:03.797048 +08:00 INFO] [order_result]: 162.35375ms
+[2025-09-07 18:07:04.078253 +08:00 INFO] [logout] user manually logout
+[2025-09-07 18:10:11.833124 +08:00 INFO] [login] personal_id="58581758"
+[2025-09-07 18:10:11.885452 +08:00 INFO] this account require 2fa
+[2025-09-07 18:10:12.122306 +08:00 INFO] [future_option_mapping]: 191.401958ms
+[2025-09-07 18:10:12.177085 +08:00 INFO] [future_option_mapping]: 53.358916ms
+[2025-09-07 18:10:12.346346 +08:00 INFO] [future_option_mapping]: 168.725042ms
+[2025-09-07 18:10:12.425296 +08:00 INFO] [future_option_mapping]: 73.709709ms
+[2025-09-07 18:10:12.736521 +08:00 INFO] [logout] user manually logout
+[2025-09-07 18:10:29.789237 +08:00 INFO] [login] personal_id="58581758"
+[2025-09-07 18:10:29.968812 +08:00 INFO] this account require 2fa
+[2025-09-07 18:10:30.119182 +08:00 INFO] [future_option_mapping]: 99.549834ms
+[2025-09-07 18:10:30.173224 +08:00 INFO] [future_option_mapping]: 52.679458ms
+[2025-09-07 18:10:30.358196 +08:00 INFO] [future_option_mapping]: 184.421042ms
+[2025-09-07 18:10:30.430218 +08:00 INFO] [future_option_mapping]: 66.066875ms
+[2025-09-07 18:10:30.612137 +08:00 INFO] [logout] user manually logout
+[2025-09-07 18:10:46.415842 +08:00 INFO] [login] personal_id="58581758"
+[2025-09-07 18:10:46.469906 +08:00 INFO] this account require 2fa
+[2025-09-07 18:10:46.678315 +08:00 INFO] [future_option_mapping]: 161.903375ms
+[2025-09-07 18:10:46.723998 +08:00 INFO] [future_option_mapping]: 44.348708ms
+[2025-09-07 18:10:46.880185 +08:00 INFO] [future_option_mapping]: 155.575667ms
+[2025-09-07 18:10:46.948643 +08:00 INFO] [future_option_mapping]: 63.2065ms
+[2025-09-07 18:10:47.114354 +08:00 INFO] [get inventories] account=Account { branch_no: "20203", account: "7900015", account_type: "stock", name: "test" }
+[2025-09-07 18:10:47.192271 +08:00 INFO] [inventory_result]: 77.891875ms
+[2025-09-07 18:10:47.192681 +08:00 INFO] [get_order_results] account=Account { branch_no: "20203", account: "7900015", account_type: "stock", name: "test" }
+[2025-09-07 18:10:47.297261 +08:00 INFO] [order_result]: 104.550958ms
+[2025-09-07 18:10:47.299984 +08:00 INFO] [logout] user manually logout
+[2025-09-07 18:11:54.771024 +08:00 INFO] [login] personal_id="58581758"
+[2025-09-07 18:11:54.834026 +08:00 INFO] this account require 2fa
+[2025-09-07 18:11:54.987708 +08:00 INFO] [future_option_mapping]: 108.607375ms
+[2025-09-07 18:11:55.037748 +08:00 INFO] [future_option_mapping]: 48.618208ms
+[2025-09-07 18:11:55.248928 +08:00 INFO] [future_option_mapping]: 210.665417ms
+[2025-09-07 18:11:55.323694 +08:00 INFO] [future_option_mapping]: 69.595292ms
+[2025-09-07 18:11:55.736183 +08:00 INFO] [get_order_results] account=Account { branch_no: "20203", account: "7900015", account_type: "stock", name: "test" }
+[2025-09-07 18:11:55.863997 +08:00 INFO] [order_result]: 127.788416ms
+[2025-09-07 18:11:55.866405 +08:00 INFO] [logout] user manually logout
+[2025-09-07 22:36:07.359130 +08:00 INFO] [login] personal_id="58581758"
+[2025-09-07 22:37:15.469165 +08:00 INFO] [login] personal_id="58581758"
+[2025-09-07 22:40:52.746830 +08:00 INFO] [login] personal_id="58581758"
+[2025-09-07 22:41:09.470988 +08:00 INFO] [login] personal_id="53521100"
+[2025-09-07 22:42:50.424555 +08:00 INFO] [login] personal_id="41610792"
+[2025-09-07 22:48:03.645378 +08:00 INFO] [login] personal_id="41610792"
+[2025-09-07 23:00:52.537634 +08:00 INFO] [login] personal_id="41610792"
+[2025-09-07 23:21:19.517830 +08:00 INFO] [login] personal_id="41610792"

@@ -1,0 +1,72 @@
+blue_short:
+  entry_conditions:
+    deviation_threshold: 0.05
+    pressure_test_threshold: 0.02
+    volume_ratio_threshold: 1.5
+  exit_conditions:
+    stop_loss_consecutive_bars: 3
+    take_profit_deviation: 0.1
+    trailing_stop_ratio: 0.05
+  risk_management:
+    max_position_size: 10000
+    max_risk_per_trade: 0.02
+database:
+  database: trading_system
+  host: localhost
+  password: trading_password123
+  port: 5432
+  timeout: 30
+  user: trading_user
+finmind:
+  base_url: https://api.finmindtrade.com
+  retry_count: 3
+  retry_delay: 1
+  timeout: 30
+  token: your_finmind_token_here
+fubon:
+  cert_filepath: 41610792.pfx
+  certpwd: '12345678'
+  id: '41610792' # 使用你提供的正確帳號
+  pwd: '12345678'
+  target_account: '7900280' # 使用實際登入成功時獲取到的股票帳號
+logging:
+  file: logs/trading_system.log
+  format: '{time:YYYY-MM-DD HH:mm:ss} | {level} | {name}:{function}:{line} | {message}'
+  level: INFO
+  max_size: 10MB
+  retention: 30 days
+monitor:
+  price_change_threshold: 0.02
+  update_interval: 30
+redis:
+  database: 0
+  host: localhost
+  password: ''
+  port: 6379
+  timeout: 30
+risk_management:
+  max_daily_loss: 0.05
+  max_open_positions: 5
+  max_position_size: 100000
+  max_risk_per_trade: 0.02
+  max_sector_exposure: 0.3
+  min_risk_reward_ratio: 2.0
+technical_indicators:
+  ma_periods:
+    blue: 120 # 小藍線（月線）- 120根4小時K線，約1個月
+    green: 360 # 小綠線（季線）- 360根4小時K線，約3個月
+    orange: 1440 # 小橘線（年線）- 1440根4小時K線，約6個月
+  macd:
+    fast_period: 12
+    signal_period: 9
+    slow_period: 26
+  rsi_period: 14
+trading:
+  default_quantity: 1000
+  market_hours:
+    end: '13:30'
+    start: 09:00
+    timezone: Asia/Taipei
+  max_orders_per_day: 10
+  min_order_interval: 60
+  real_trading: true

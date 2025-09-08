@@ -1,0 +1,140 @@
+version: '3.8'
+
+services:
+  # PostgreSQL 數據庫
+  postgres:
+    image: postgres:15
+    container_name: trading_db
+    environment:
+      POSTGRES_DB: trading_system
+      POSTGRES_USER: trading_user
+      POSTGRES_PASSWORD: trading_password123
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-scripts:/docker-entrypoint-initdb.d
+    networks:
+      - trading_network
+    restart: unless-stopped
+
+  # Redis 緩存
+  redis:
+    image: redis:7-alpine
+    container_name: trading_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - trading_network
+    restart: unless-stopped
+
+  # 自動交易系統
+  trading_system:
+    build: .
+    container_name: auto_trading_system
+    environment:
+      - PYTHONPATH=/app/src
+      - TZ=Asia/Taipei
+      # 數據庫連接
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=trading_system
+      - DB_USER=trading_user
+      - DB_PASSWORD=trading_password123
+      # Redis 連接
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    volumes:
+      - ./logs:/app/logs
+      - ./data:/app/data
+      - ./certs:/app/certs
+      - ./config.yaml:/app/config.yaml
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - trading_network
+    restart: unless-stopped
+    command: ["python", "scripts/trading/run_auto_trading.py"]
+
+  # 數據遷移服務（一次性運行）
+  data_migrate:
+    build: .
+    container_name: data_migrate
+    environment:
+      - PYTHONPATH=/app/src
+      - TZ=Asia/Taipei
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=trading_system
+      - DB_USER=trading_user
+      - DB_PASSWORD=trading_password123
+    volumes:
+      - ./logs:/app/logs
+      - ./data:/app/data
+      - ./config.yaml:/app/config.yaml
+    depends_on:
+      - postgres
+    networks:
+      - trading_network
+    command: ["python", "scripts/data/data_migrate.py"]
+    profiles:
+      - migrate
+
+  # 技術指標計算服務（一次性運行）
+  calculate_indicators:
+    build: .
+    container_name: calculate_indicators
+    environment:
+      - PYTHONPATH=/app/src
+      - TZ=Asia/Taipei
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=trading_system
+      - DB_USER=trading_user
+      - DB_PASSWORD=trading_password123
+    volumes:
+      - ./logs:/app/logs
+      - ./data:/app/data
+      - ./config.yaml:/app/config.yaml
+    depends_on:
+      - postgres
+    networks:
+      - trading_network
+    command: ["python", "scripts/analysis/calculate_indicators.py"]
+    profiles:
+      - indicators
+
+  # 策略執行服務（一次性運行）
+  run_strategies:
+    build: .
+    container_name: run_strategies
+    environment:
+      - PYTHONPATH=/app/src
+      - TZ=Asia/Taipei
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=trading_system
+      - DB_USER=trading_user
+      - DB_PASSWORD=trading_password123
+    volumes:
+      - ./logs:/app/logs
+      - ./data:/app/data
+      - ./config.yaml:/app/config.yaml
+    depends_on:
+      - postgres
+    networks:
+      - trading_network
+    command: ["python", "scripts/analysis/run_strategies.py"]
+    profiles:
+      - strategies
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  trading_network:
+    driver: bridge
