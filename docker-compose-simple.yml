@@ -25,6 +25,7 @@ services:
       - DB_NAME=trading_system
       - DB_USER=trading_user
       - DB_PASSWORD=trading_password123
+      - FINMIND_TOKEN=${FINMIND_TOKEN:-your_finmind_token_here}
     volumes:
       - ./config.yaml:/app/config.yaml
     depends_on:

@@ -337,7 +337,7 @@ def main():
         return
 
     # 檢查 FinMind API Token
-    finmind_token = config.get("finmind", {}).get("api_token", "")
+    finmind_token = config.get("finmind", {}).get("token", "")
     if not finmind_token or finmind_token == "YOUR_FINMIND_TOKEN":
         print("❌ FinMind API Token 未設置")
         print("請在 config.yaml 中設置正確的 api_token")
