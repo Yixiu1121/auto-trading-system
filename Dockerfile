@@ -31,13 +31,16 @@ RUN poetry config virtualenvs.create false
 # 創建臨時 pyproject.toml，移除本地 fubon-neo 依賴
 RUN sed '/fubon-neo @ file:/d' pyproject.toml > pyproject_temp.toml && mv pyproject_temp.toml pyproject.toml
 
+# 重新生成 lock 文件以匹配修改後的 pyproject.toml
+RUN poetry lock
+
 # 安裝專案依賴（使用 lock 檔，不更新版本，不安裝 root package）
 RUN poetry install --only main --no-root
 
-# 下載並安裝富邦SDK
+# 下載並安裝富邦SDK（使用直接安裝wheel文件的方式）
 RUN wget https://www.fbs.com.tw/TradeAPI_SDK/fubon_binary/fubon_neo-2.2.4-cp37-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.zip \
   && unzip fubon_neo-2.2.4-cp37-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.zip \
-  && pip install fubon_neo-2.2.4-cp37-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl \
+  && pip install --no-cache-dir fubon_neo-2.2.4-cp37-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl \
   && rm fubon_neo-2.2.4-cp37-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.zip \
   && rm fubon_neo-2.2.4-cp37-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
 
