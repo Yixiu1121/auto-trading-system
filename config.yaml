@@ -12,7 +12,7 @@ blue_short:
     max_risk_per_trade: 0.02
 database:
   database: trading_system
-  host: localhost
+  host: postgres
   password: trading_password123
   port: 5432
   timeout: 30
@@ -40,7 +40,7 @@ monitor:
   update_interval: 30
 redis:
   database: 0
-  host: localhost
+  host: redis
   password: ''
   port: 6379
   timeout: 30
