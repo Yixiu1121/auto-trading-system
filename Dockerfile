@@ -32,7 +32,7 @@ RUN poetry config virtualenvs.create false
 RUN sed '/fubon-neo @ file:/d' pyproject.toml > pyproject_temp.toml && mv pyproject_temp.toml pyproject.toml
 
 # 安裝專案依賴（不包含 fubon-neo）
-RUN poetry install --no-dev --no-root
+RUN poetry install --only main --no-root
 
 # 下載並安裝富邦SDK
 RUN wget https://www.fbs.com.tw/TradeAPI_SDK/fubon_binary/fubon_neo-2.2.4-cp37-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.zip \
