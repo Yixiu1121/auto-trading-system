@@ -79,7 +79,7 @@ services:
       - postgres
     networks:
       - trading_network
-    command: ["python", "scripts/data/data_migrate.py"]
+    command: ["python", "scripts/data_migration/data_migrate.py"]
     profiles:
       - migrate
 
