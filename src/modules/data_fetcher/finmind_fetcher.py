@@ -34,12 +34,18 @@ class FinMindFetcher:
 
         # FinMind API 配置
         self.api_base_url = "https://api.finmindtrade.com"
-        self.api_token = os.getenv(
-            "FINMIND_TOKEN", config.get("finmind", {}).get("api_token", "")
-        )
+        finmind_config = config.get("finmind", {})
+        self.api_token = os.getenv("FINMIND_TOKEN", finmind_config.get("token", ""))
 
-        # 數據庫配置
-        self.db_config = config.get("database", {})
+        # 數據庫配置 - 處理環境變量
+        db_config = config.get("database", {})
+        self.db_config = {
+            "host": os.getenv("DB_HOST", db_config.get("host", "localhost")),
+            "port": int(os.getenv("DB_PORT", db_config.get("port", 5432))),
+            "database": os.getenv("DB_NAME", db_config.get("database", "trading_system")),
+            "user": os.getenv("DB_USER", db_config.get("user", "trading_user")),
+            "password": os.getenv("DB_PASSWORD", db_config.get("password", "trading_password")),
+        }
 
         # 請求頭
         self.headers = {
