@@ -1,0 +1,37 @@
+services:
+  # PostgreSQL 數據庫
+  postgres:
+    image: postgres:15
+    container_name: trading_db
+    environment:
+      POSTGRES_DB: trading_system
+      POSTGRES_USER: trading_user
+      POSTGRES_PASSWORD: trading_password123
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  # 數據遷移服務（一次性運行）
+  data_migrate:
+    build: .
+    container_name: data_migrate
+    environment:
+      - PYTHONPATH=/app/src
+      - TZ=Asia/Taipei
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=trading_system
+      - DB_USER=trading_user
+      - DB_PASSWORD=trading_password123
+    volumes:
+      - ./config.yaml:/app/config.yaml
+    depends_on:
+      - postgres
+    command: ["python", "scripts/data_migration/data_migrate.py"]
+    profiles:
+      - migrate
+
+volumes:
+  postgres_data:
