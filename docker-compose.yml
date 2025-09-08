@@ -57,7 +57,7 @@ services:
     networks:
       - trading_network
     restart: unless-stopped
-    command: ["python", "scripts/trading/run_auto_trading.py"]
+    command: ["python", "main.py", "--mode", "auto-trading"]
 
   # 數據遷移服務（一次性運行）
   data_migrate:

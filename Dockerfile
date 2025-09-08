@@ -19,11 +19,20 @@ RUN apt-get update && apt-get install -y \
   unzip \
   && rm -rf /var/lib/apt/lists/*
 
-# 複製 requirements.txt
-COPY requirements.txt .
+# 安裝 Poetry
+RUN pip install --no-cache-dir poetry
 
-# 安裝 Python 依賴
-RUN pip install --no-cache-dir -r requirements.txt
+# 複製 Poetry 配置文件
+COPY pyproject.toml poetry.lock ./
+
+# 配置 Poetry：不創建虛擬環境，直接安裝到系統 Python
+RUN poetry config virtualenvs.create false
+
+# 創建臨時 pyproject.toml，移除本地 fubon-neo 依賴
+RUN sed '/fubon-neo @ file:/d' pyproject.toml > pyproject_temp.toml && mv pyproject_temp.toml pyproject.toml
+
+# 安裝專案依賴（不包含 fubon-neo）
+RUN poetry install --no-dev --no-root
 
 # 下載並安裝富邦SDK
 RUN wget https://www.fbs.com.tw/TradeAPI_SDK/fubon_binary/fubon_neo-2.2.4-cp37-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.zip \
@@ -41,7 +50,8 @@ RUN mkdir -p /app/logs \
   && mkdir -p /app/certs
 
 # 設置權限
-RUN chmod +x /app/scripts/trading/*.py
+RUN chmod +x /app/scripts/trading/*.py \
+  && chmod +x /app/main.py
 
 # 暴露端口（如果需要 Web 界面）
 EXPOSE 8000
@@ -51,6 +61,6 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
   CMD python -c "import sys; sys.exit(0)" || exit 1
 
 # 默認命令
-CMD ["python", "scripts/trading/run_auto_trading.py"]
+CMD ["python", "main.py", "--mode", "auto-trading"]
 
 
