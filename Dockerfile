@@ -31,6 +31,9 @@ RUN poetry config virtualenvs.create false
 # 創建臨時 pyproject.toml，移除本地 fubon-neo 依賴
 RUN sed '/fubon-neo @ file:/d' pyproject.toml > pyproject_temp.toml && mv pyproject_temp.toml pyproject.toml
 
+# 重新生成 lock 檔案以匹配修改後的 pyproject.toml
+RUN poetry lock --no-update
+
 # 安裝專案依賴（不包含 fubon-neo）
 RUN poetry install --only main --no-root
 
