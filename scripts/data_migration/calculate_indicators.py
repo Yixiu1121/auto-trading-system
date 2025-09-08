@@ -30,8 +30,19 @@ def load_config():
         return None
 
     with open(config_path, "r", encoding="utf-8") as f:
-        config = yaml.safe_load(f)
-
+        content = f.read()
+    
+    # 處理環境變量替換
+    import re
+    def replace_env_vars(match):
+        env_var = match.group(1)
+        default_value = match.group(2) if match.group(2) else ""
+        return os.getenv(env_var, default_value)
+    
+    # 替換 ${VAR:-default} 格式的環境變量
+    content = re.sub(r'\$\{([^:}]+):-([^}]*)\}', replace_env_vars, content)
+    
+    config = yaml.safe_load(content)
     return config
 
 
