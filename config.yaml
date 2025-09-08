@@ -22,7 +22,7 @@ finmind:
   retry_count: 3
   retry_delay: 1
   timeout: 30
-  token: ${FINMIND_TOKEN:-your_finmind_token_here}
+  token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJkYXRlIjoiMjAyNS0wOS0wOSAwMDo1MjozNiIsInVzZXJfaWQiOiJTaHJlZXkxMTIxIiwiaXAiOiIxMDEuMTAuMTA4LjQ5In0.BJR70raTSWb92oQACG45e6pLmKxS-5haNZpB8WtqAkA
 fubon:
   cert_filepath: 41610792.pfx
   certpwd: '12345678'
