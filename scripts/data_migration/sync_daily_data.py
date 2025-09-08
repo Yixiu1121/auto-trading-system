@@ -16,7 +16,7 @@ from loguru import logger
 # 添加 src 目錄到 Python 路徑
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", "src"))
 
-from src.modules.data_fetcher import FinMindFetcher
+from modules.data_fetcher import FinMindFetcher
 
 
 def load_config():

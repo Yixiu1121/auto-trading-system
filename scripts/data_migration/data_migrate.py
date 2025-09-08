@@ -15,7 +15,8 @@ from loguru import logger
 # 添加 src 目錄到 Python 路徑
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", "src"))
 
-from src.modules.data_fetcher import FinMindFetcher
+# 直接導入模組，不使用 src. 前綴
+from modules.data_fetcher import FinMindFetcher
 
 
 def load_config():
@@ -210,7 +211,7 @@ def convert_daily_to_4h_kline(df_daily: pd.DataFrame, target_date: str) -> pd.Da
     """
     try:
         # 導入4小時K線計算器
-        from src.modules.kline.four_hour_calculator import FourHourKlineCalculator
+        from modules.kline.four_hour_calculator import FourHourKlineCalculator
 
         # 初始化計算器
         calculator = FourHourKlineCalculator()
@@ -240,7 +241,7 @@ def convert_daily_to_4h_kline_range(df_daily: pd.DataFrame) -> pd.DataFrame:
     """
     try:
         # 導入4小時K線計算器
-        from src.modules.kline.four_hour_calculator import FourHourKlineCalculator
+        from modules.kline.four_hour_calculator import FourHourKlineCalculator
 
         # 初始化計算器
         calculator = FourHourKlineCalculator()
