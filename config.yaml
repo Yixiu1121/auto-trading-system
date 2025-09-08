@@ -12,11 +12,11 @@ blue_short:
     max_risk_per_trade: 0.02
 database:
   database: trading_system
-  host: ${DB_HOST:-localhost}
-  password: ${DB_PASSWORD:-trading_password123}
-  port: ${DB_PORT:-5432}
+  host: localhost
+  password: trading_password123
+  port: 5432
   timeout: 30
-  user: ${DB_USER:-trading_user}
+  user: trading_user
 finmind:
   base_url: https://api.finmindtrade.com
   retry_count: 3
