@@ -52,33 +52,75 @@ class FubonAPIClient:
         self.cert_password = self.fubon_config.get("certpwd")
         self.target_account = self.fubon_config.get("target_account")
 
-        # 初始化 SDK
-        if SDK_AVAILABLE:
-            self._init_sdk()
-        else:
-            logger.warning("富邦證券 API 客戶端初始化完成（模擬模式）")
+        # 延遲初始化 SDK - 只有在實際需要時才初始化
+        # 這樣其他模組不會因為富邦SDK連接失敗而受影響
+        self.sdk_initialized = False
+        logger.info("富邦證券 API 客戶端初始化完成（延遲初始化模式）")
 
     def _init_sdk(self):
-        """初始化 SDK"""
-        try:
-            # 使用 v2.2.1+ 的初始化方式 (測試環境)
-            self.sdk = FubonSDK(30, 2, url="wss://neoapitest.fbs.com.tw/TASP/XCPXWS")
-            logger.info("富邦證券 SDK 初始化成功 (v2.2.1+ 測試環境)")
-        except Exception as e:
-            logger.error(f"富邦證券 SDK 初始化失敗: {e}")
-            # 如果失敗，嘗試 v2.2.0 以前的方式
+        """初始化 SDK，失敗時優雅降級"""
+        # 嘗試不同的初始化方式
+        init_methods = [
+            {
+                "name": "v2.2.1+ 測試環境",
+                "func": lambda: FubonSDK(
+                    30, 2, url="wss://neoapitest.fbs.com.tw/TASP/XCPXWS"
+                ),
+            },
+            {
+                "name": "v2.2.0 以前方式",
+                "func": lambda: FubonSDK(url="wss://neoapitest.fbs.com.tw/TASP/XCPXWS"),
+            },
+            {"name": "預設環境", "func": lambda: FubonSDK()},
+        ]
+
+        for method in init_methods:
             try:
-                self.sdk = FubonSDK(url="wss://neoapitest.fbs.com.tw/TASP/XCPXWS")
-                logger.info("富邦證券 SDK 初始化成功 (v2.2.0 以前方式)")
-            except Exception as e2:
-                logger.error(f"富邦證券 SDK 初始化失敗 (v2.2.0 以前方式): {e2}")
-                # 最後嘗試預設環境
-                try:
-                    self.sdk = FubonSDK()
-                    logger.info("富邦證券 SDK 初始化成功 (預設環境)")
-                except Exception as e3:
-                    logger.error(f"富邦證券 SDK 初始化失敗 (預設環境): {e3}")
-                    self.sdk = None
+                logger.info(f"嘗試 SDK 初始化: {method['name']}")
+                self.sdk = method["func"]()
+                logger.info(f"富邦證券 SDK 初始化成功 ({method['name']})")
+                return  # 成功則退出
+            except Exception as e:
+                logger.warning(f"SDK 初始化失敗 ({method['name']}): {e}")
+                continue
+
+        # 所有方法都失敗
+        logger.error("所有 SDK 初始化方法都失敗，將使用模擬模式")
+        self.sdk = None
+
+    def _ensure_sdk_initialized(self) -> bool:
+        """
+        確保SDK已初始化，只在需要時才初始化
+        
+        Returns:
+            bool: SDK是否可用
+        """
+        if self.sdk_initialized:
+            return self.sdk is not None
+            
+        if not SDK_AVAILABLE:
+            logger.warning("富邦SDK不可用，使用模擬模式")
+            self.sdk_initialized = True
+            return False
+            
+        try:
+            logger.info("首次使用富邦功能，正在初始化SDK...")
+            self._init_sdk()
+            self.sdk_initialized = True
+            
+            if self.sdk is None:
+                logger.warning("SDK初始化失敗，將使用模擬模式")
+                return False
+            else:
+                logger.info("富邦SDK初始化成功")
+                return True
+                
+        except Exception as e:
+            logger.error(f"SDK初始化異常: {e}")
+            logger.warning("SDK初始化失敗，將使用模擬模式")
+            self.sdk = None
+            self.sdk_initialized = True
+            return False
 
     def _login_and_setup(self) -> bool:
         """
@@ -87,7 +129,8 @@ class FubonAPIClient:
         Returns:
             bool: 登入是否成功
         """
-        if not SDK_AVAILABLE or not self.sdk:
+        # 確保SDK已初始化
+        if not self._ensure_sdk_initialized():
             logger.warning("SDK 不可用，跳過登入")
             return False
 
@@ -270,9 +313,16 @@ class FubonAPIClient:
         Returns:
             Dict: 下單結果
         """
-        if not self.is_logged_in:
-            logger.warning("未登入，無法下單")
+        # 確保SDK已初始化並登入
+        if not self._ensure_sdk_initialized():
+            logger.warning("SDK不可用，無法下單")
             return None
+            
+        if not self.is_logged_in:
+            # 嘗試登入
+            if not self._login_and_setup():
+                logger.warning("登入失敗，無法下單")
+                return None
 
         try:
             # 轉換參數
@@ -656,28 +706,34 @@ class FubonAPIClient:
     def get_real_time_price(self, symbol: str) -> Optional[float]:
         """
         獲取即時股價
-        
+
         Args:
             symbol: 股票代碼
-            
+
         Returns:
             float: 當前股價，如果失敗則返回None
         """
-        if not self.is_connected:
-            logger.warning("未連接行情，無法獲取即時價格")
-            return None
-            
+        # 嘗試確保SDK已初始化（但不要求登入，因為即時價格可能不需要登入）
+        if not self._ensure_sdk_initialized():
+            # SDK不可用，使用模擬模式
+            import random
+            mock_price = 100 + random.uniform(-10, 10)
+            logger.debug(f"模擬模式：{symbol} 即時價格 = {mock_price:.2f}")
+            return mock_price
+
         try:
             if SDK_AVAILABLE and self.sdk:
                 # 使用 REST API 獲取即時報價
                 rest_stock = self.sdk.marketdata.rest_client.stock
                 result = rest_stock.intraday.quote(symbol=symbol)
-                
+
                 if result and "data" in result and result["data"]:
                     data = result["data"]
                     # 獲取當前價格（可能是成交價、委買價或委賣價）
-                    current_price = data.get("price") or data.get("close") or data.get("last")
-                    
+                    current_price = (
+                        data.get("price") or data.get("close") or data.get("last")
+                    )
+
                     if current_price is not None:
                         logger.debug(f"獲取 {symbol} 即時價格: {current_price}")
                         return float(current_price)
@@ -690,10 +746,11 @@ class FubonAPIClient:
             else:
                 # 模擬模式
                 import random
+
                 mock_price = 100 + random.uniform(-10, 10)
                 logger.debug(f"模擬模式：{symbol} 即時價格 = {mock_price:.2f}")
                 return mock_price
-                
+
         except Exception as e:
             logger.error(f"獲取即時價格失敗 {symbol}: {e}")
             return None
@@ -701,18 +758,18 @@ class FubonAPIClient:
     def is_pre_market_time(self) -> bool:
         """
         檢查是否為開盤前時間（可以進行預單）
-        
+
         Returns:
             bool: 是否為開盤前時間
         """
         taiwan_tz = pytz.timezone("Asia/Taipei")
         now = datetime.now(taiwan_tz)
-        
+
         # 週一到週五
         weekday = now.weekday()
         if weekday >= 5:  # 週末
             return False
-            
+
         time_str = now.strftime("%H:%M")
         # 開盤前時間：07:00-08:59（可以進行預單）
         return "07:00" <= time_str <= "08:59"
