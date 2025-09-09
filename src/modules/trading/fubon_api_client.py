@@ -91,30 +91,30 @@ class FubonAPIClient:
     def _ensure_sdk_initialized(self) -> bool:
         """
         確保SDK已初始化，只在需要時才初始化
-        
+
         Returns:
             bool: SDK是否可用
         """
         if self.sdk_initialized:
             return self.sdk is not None
-            
+
         if not SDK_AVAILABLE:
             logger.warning("富邦SDK不可用，使用模擬模式")
             self.sdk_initialized = True
             return False
-            
+
         try:
             logger.info("首次使用富邦功能，正在初始化SDK...")
             self._init_sdk()
             self.sdk_initialized = True
-            
+
             if self.sdk is None:
                 logger.warning("SDK初始化失敗，將使用模擬模式")
                 return False
             else:
                 logger.info("富邦SDK初始化成功")
                 return True
-                
+
         except Exception as e:
             logger.error(f"SDK初始化異常: {e}")
             logger.warning("SDK初始化失敗，將使用模擬模式")
@@ -317,7 +317,7 @@ class FubonAPIClient:
         if not self._ensure_sdk_initialized():
             logger.warning("SDK不可用，無法下單")
             return None
-            
+
         if not self.is_logged_in:
             # 嘗試登入
             if not self._login_and_setup():
@@ -717,6 +717,7 @@ class FubonAPIClient:
         if not self._ensure_sdk_initialized():
             # SDK不可用，使用模擬模式
             import random
+
             mock_price = 100 + random.uniform(-10, 10)
             logger.debug(f"模擬模式：{symbol} 即時價格 = {mock_price:.2f}")
             return mock_price
