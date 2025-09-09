@@ -47,7 +47,7 @@ redis:
 risk_management:
   max_daily_loss: 0.05
   max_open_positions: 5
-  max_position_size: 100000
+  max_position_size: 2000000 # 提高到200萬以便演示
   max_risk_per_trade: 0.02
   max_sector_exposure: 0.3
   min_risk_reward_ratio: 2.0
@@ -70,3 +70,18 @@ trading:
   max_orders_per_day: 10
   min_order_interval: 60
   real_trading: true
+  # 開盤前分析配置
+  min_signal_strength: 0.6
+  max_signals_per_stock: 2
+  price_tolerance: 0.01 # 價格容忍度 1%
+
+  # 開盤前下單配置
+  enable_pre_market_orders: true # 是否啟用開盤前下單
+  min_pre_market_signal_strength: 0.8 # 開盤前下單最小信號強度
+  max_pre_market_orders_per_day: 5 # 每日最大開盤前下單次數
+  pre_market_price_adjustment: 0.005 # 開盤前價格調整幅度 (0.5%)
+
+  stock_pool:
+    - '2330' # 台積電
+    - '0050' # 元大台灣50
+    - '1101' # 台泥

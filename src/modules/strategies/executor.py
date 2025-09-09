@@ -14,6 +14,10 @@ from loguru import logger
 from .strategy_base import BaseStrategy
 from .blue_long import BlueLongStrategy
 from .blue_short import BlueShortStrategy
+from .green_long import GreenLongStrategy
+from .green_short import GreenShortStrategy
+from .orange_long import OrangeLongStrategy
+from .orange_short import OrangeShortStrategy
 
 
 class StrategyExecutor:
@@ -24,14 +28,22 @@ class StrategyExecutor:
         初始化策略執行器
 
         Args:
-            config: 配置字典
+            config: 配置字典或數據庫配置字典
         """
         self.config = config
-        self.db_config = config.get("database", {})
+        # 如果 config 包含 database 鍵且該鍵的值是字典類型，則提取數據庫配置；否則假設整個 config 就是數據庫配置
+        if "database" in config and isinstance(config.get("database"), dict):
+            self.db_config = config.get("database", {})
+        else:
+            self.db_config = config
         self.db_conn = None
         self.strategies = {
             "blue_long": BlueLongStrategy,
             "blue_short": BlueShortStrategy,
+            "green_long": GreenLongStrategy,
+            "green_short": GreenShortStrategy,
+            "orange_long": OrangeLongStrategy,
+            "orange_short": OrangeShortStrategy,
         }
 
     def connect_database(self) -> bool:

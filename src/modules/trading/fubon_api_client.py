@@ -7,8 +7,10 @@
 import os
 import json
 import time
+from datetime import datetime
 from typing import Dict, List, Optional, Any
 from loguru import logger
+import pytz
 
 try:
     from fubon_neo.sdk import FubonSDK, Order
@@ -539,6 +541,136 @@ class FubonAPIClient:
                 status["account_error"] = str(e)
 
         return status
+
+    def place_pre_market_order(
+        self,
+        symbol: str,
+        quantity: int,
+        price: Optional[float] = None,
+        side: str = "buy",
+        order_type: str = "limit",
+    ) -> Optional[Dict[str, Any]]:
+        """
+        開盤前下單
+
+        Args:
+            symbol: 股票代碼
+            quantity: 數量
+            price: 價格（市價單可為 None）
+            side: 買賣方向 ('buy' 或 'sell')
+            order_type: 訂單類型 ('limit', 'market', 'reference')
+
+        Returns:
+            Dict: 下單結果
+        """
+        if not self.is_logged_in:
+            logger.warning("未登入，無法下單")
+            return None
+
+        try:
+            # 檢查是否為開盤前時間
+            if not self.is_pre_market_time():
+                logger.warning("非開盤前時間，建議使用一般下單")
+
+            # 轉換參數
+            buy_sell = BSAction.Buy if side.lower() == "buy" else BSAction.Sell
+
+            if order_type == "limit":
+                price_type = PriceType.Limit
+            elif order_type == "market":
+                price_type = PriceType.Market
+            else:
+                price_type = PriceType.Reference
+
+            # 創建開盤前訂單
+            order = Order(
+                buy_sell=buy_sell,
+                symbol=symbol,
+                price=price,
+                quantity=quantity,
+                market_type=MarketType.Common,
+                price_type=price_type,
+                time_in_force=TimeInForce.ROD,  # 當日有效
+                order_type=OrderType.Stock,
+                user_def=None,
+            )
+
+            # 下單 - 開盤前委託
+            logger.info(f"開盤前下單: {symbol} {side} {quantity}股 @ {price}")
+
+            if SDK_AVAILABLE and self.accounts and len(self.accounts.data) > 0:
+                response = self.sdk.stock.place_order(self.accounts.data[0], order)
+
+                if response.is_success:
+                    result = {
+                        "success": True,
+                        "order_id": response.data.order_no if response.data else None,
+                        "message": "開盤前委託成功",
+                        "symbol": symbol,
+                        "side": side,
+                        "quantity": quantity,
+                        "price": price,
+                        "order_type": order_type,
+                        "timestamp": datetime.now().isoformat(),
+                    }
+                    logger.info(f"開盤前下單成功: {result}")
+                    return result
+                else:
+                    error_msg = response.message if response else "未知錯誤"
+                    logger.error(f"開盤前下單失敗: {error_msg}")
+                    return {
+                        "success": False,
+                        "error": error_msg,
+                        "symbol": symbol,
+                        "side": side,
+                        "quantity": quantity,
+                        "price": price,
+                    }
+            else:
+                # 模擬模式
+                result = {
+                    "success": True,
+                    "order_id": f"PRE_MARKET_{int(time.time())}",
+                    "message": "開盤前委託成功（模擬）",
+                    "symbol": symbol,
+                    "side": side,
+                    "quantity": quantity,
+                    "price": price,
+                    "order_type": order_type,
+                    "timestamp": datetime.now().isoformat(),
+                }
+                logger.info(f"開盤前下單成功（模擬）: {result}")
+                return result
+
+        except Exception as e:
+            logger.error(f"開盤前下單失敗: {e}")
+            return {
+                "success": False,
+                "error": str(e),
+                "symbol": symbol,
+                "side": side,
+                "quantity": quantity,
+                "price": price,
+            }
+
+    def is_pre_market_time(self) -> bool:
+        """
+        檢查是否為開盤前時間（可以進行預單）
+
+        Returns:
+            bool: 是否為開盤前時間
+        """
+        taiwan_tz = pytz.timezone("Asia/Taipei")
+        now = datetime.now(taiwan_tz)
+
+        # 週一到週五
+        weekday = now.weekday()
+        if weekday >= 5:  # 週末
+            return False
+
+        time_str = now.strftime("%H:%M")
+        # 開盤前時間：07:00-08:59（可以進行預單）
+        return "07:00" <= time_str <= "08:59"
 
     def __del__(self):
         """析構函數，清理資源"""

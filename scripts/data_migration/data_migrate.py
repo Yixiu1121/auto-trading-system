@@ -43,12 +43,12 @@ def load_config():
     # 先打印原始內容進行調試
     logger.info("原始配置文件內容:")
     logger.info(content)
-    
+
     # 使用更簡單的正則表達式
-    pattern = r'\$\{([^:}]+):-([^}]*)\}'
+    pattern = r"\$\{([^:}]+):-([^}]*)\}"
     matches = re.findall(pattern, content)
     logger.info(f"找到的環境變量匹配: {matches}")
-    
+
     content = re.sub(pattern, replace_env_vars, content)
 
     # 調試：打印替換後的內容

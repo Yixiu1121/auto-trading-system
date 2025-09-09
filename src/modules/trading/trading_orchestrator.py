@@ -14,6 +14,7 @@ import pytz
 
 from .auto_trader import AutoTrader
 from .fubon_api_client import FubonAPIClient
+from .pre_market_analyzer import PreMarketAnalyzer
 from ..strategies.executor import StrategyExecutor
 from ..data_fetcher import FinMindFetcher
 from ..risk_manager.risk_manager import RiskManager
@@ -61,6 +62,9 @@ class TradingOrchestrator:
 
             # 初始化市場監控器
             self.modules["market_monitor"] = MarketMonitor(self.config)
+
+            # 初始化開盤前分析器
+            self.modules["pre_market_analyzer"] = PreMarketAnalyzer(self.config)
 
             logger.info("所有交易模組初始化完成")
 
@@ -160,19 +164,97 @@ class TradingOrchestrator:
             # 計算技術指標
             self._calculate_indicators()
 
-            # 生成交易信號
-            self._generate_trading_signals()
+            # 使用開盤前分析器計算所有策略信號
+            self._analyze_pre_market_signals()
+
+            # 開始價格監控和自動下單準備
+            self._start_pre_market_monitoring()
 
             logger.info("開盤前準備完成")
 
         except Exception as e:
             logger.error(f"開盤前準備失敗: {e}")
 
+    def _analyze_pre_market_signals(self):
+        """分析開盤前策略信號"""
+        try:
+            logger.info("開始分析開盤前六大策略信號...")
+
+            # 獲取股票池
+            stock_pool = self._get_active_stock_pool()
+
+            # 使用開盤前分析器計算所有策略信號
+            pre_market_analyzer = self.modules["pre_market_analyzer"]
+            signals = pre_market_analyzer.analyze_pre_market_signals(stock_pool)
+
+            logger.info(f"開盤前信號分析完成，產生 {len(signals)} 個信號")
+
+            # 顯示信號摘要
+            self._display_signals_summary(signals)
+
+        except Exception as e:
+            logger.error(f"開盤前信號分析失敗: {e}")
+
+    def _start_pre_market_monitoring(self):
+        """開始開盤前監控"""
+        try:
+            logger.info("開始啟動開盤前價格監控...")
+
+            pre_market_analyzer = self.modules["pre_market_analyzer"]
+
+            # 啟動價格監控（將在開盤時自動開始監控）
+            pre_market_analyzer.start_price_monitoring()
+
+            logger.info("開盤前價格監控已啟動，將在開盤時自動執行")
+
+        except Exception as e:
+            logger.error(f"啟動開盤前監控失敗: {e}")
+
+    def _display_signals_summary(self, signals: List[Dict]):
+        """顯示信號摘要"""
+        try:
+            if not signals:
+                logger.info("沒有產生任何交易信號")
+                return
+
+            # 按策略統計
+            strategy_stats = {}
+            for signal in signals:
+                strategy = signal["strategy"]
+                if strategy not in strategy_stats:
+                    strategy_stats[strategy] = {"buy": 0, "sell": 0, "total": 0}
+
+                strategy_stats[strategy][signal["action"]] += 1
+                strategy_stats[strategy]["total"] += 1
+
+            logger.info("=== 開盤前信號摘要 ===")
+            for strategy, stats in strategy_stats.items():
+                logger.info(
+                    f"{strategy}: 買入 {stats['buy']} 賣出 {stats['sell']} 總計 {stats['total']}"
+                )
+
+            # 顯示最強信號
+            top_signals = sorted(
+                signals, key=lambda x: abs(x["signal_strength"]), reverse=True
+            )[:5]
+            logger.info("\n=== 最強信號前5名 ===")
+            for i, signal in enumerate(top_signals, 1):
+                logger.info(
+                    f"{i}. {signal['symbol']} {signal['strategy']} {signal['action']} "
+                    f"強度: {signal['signal_strength']:.3f} 目標價: {signal['target_price']:.2f}"
+                )
+
+        except Exception as e:
+            logger.error(f"顯示信號摘要失敗: {e}")
+
     def _post_market_cleanup(self):
         """收盤後清理"""
         logger.info("開始收盤後清理...")
 
         try:
+            # 停止價格監控
+            self._stop_pre_market_monitoring()
+
             # 清理過期數據
             self._cleanup_old_data()
 
@@ -186,6 +268,53 @@ class TradingOrchestrator:
 
         except Exception as e:
             logger.error(f"收盤後清理失敗: {e}")
+
+    def _stop_pre_market_monitoring(self):
+        """停止開盤前監控"""
+        try:
+            logger.info("停止開盤前價格監控...")
+
+            pre_market_analyzer = self.modules["pre_market_analyzer"]
+            pre_market_analyzer.stop_price_monitoring()
+
+            # 生成當日交易報告
+            self._generate_trading_report()
+
+            logger.info("開盤前價格監控已停止")
+
+        except Exception as e:
+            logger.error(f"停止開盤前監控失敗: {e}")
+
+    def _generate_trading_report(self):
+        """生成當日交易報告"""
+        try:
+            pre_market_analyzer = self.modules["pre_market_analyzer"]
+            status = pre_market_analyzer.get_monitoring_status()
+            signals = pre_market_analyzer.get_pre_market_signals()
+
+            logger.info("=== 當日交易報告 ===")
+            logger.info(f"總信號數: {status['total_signals']}")
+            logger.info(f"執行成功: {status['executed_signals']}")
+            logger.info(f"執行失敗: {status['failed_signals']}")
+            logger.info(f"待執行: {status['pending_signals']}")
+
+            # 詳細執行結果
+            executed_signals = [s for s in signals if s["status"] == "executed"]
+            if executed_signals:
+                logger.info("=== 已執行的交易 ===")
+                for signal in executed_signals:
+                    profit_loss = ""
+                    if signal.get("executed_price") and signal.get("target_price"):
+                        diff = signal["executed_price"] - signal["target_price"]
+                        profit_loss = f"(差價: {diff:+.2f})"
+
+                    logger.info(
+                        f"{signal['symbol']} {signal['strategy']} {signal['action']} "
+                        f"{signal['executed_quantity']}股 @ {signal['executed_price']:.2f} {profit_loss}"
+                    )
+
+        except Exception as e:
+            logger.error(f"生成交易報告失敗: {e}")
 
     def _health_check(self):
         """系統健康檢查"""

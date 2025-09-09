@@ -42,9 +42,13 @@ class FinMindFetcher:
         self.db_config = {
             "host": os.getenv("DB_HOST", db_config.get("host", "localhost")),
             "port": int(os.getenv("DB_PORT", db_config.get("port", 5432))),
-            "database": os.getenv("DB_NAME", db_config.get("database", "trading_system")),
+            "database": os.getenv(
+                "DB_NAME", db_config.get("database", "trading_system")
+            ),
             "user": os.getenv("DB_USER", db_config.get("user", "trading_user")),
-            "password": os.getenv("DB_PASSWORD", db_config.get("password", "trading_password")),
+            "password": os.getenv(
+                "DB_PASSWORD", db_config.get("password", "trading_password")
+            ),
         }
 
         # 請求頭

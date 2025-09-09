@@ -11,7 +11,7 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./init-scripts:/docker-entrypoint-initdb.d
+      - ./scripts/setup/init-scripts:/docker-entrypoint-initdb.d
     networks:
       - trading_network
     restart: unless-stopped
@@ -44,7 +44,10 @@ services:
       # Redis 連接
       - REDIS_HOST=redis
       - REDIS_PORT=6379
+      # FinMind API Token
+      - FINMIND_TOKEN=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJkYXRlIjoiMjAyNS0wOS0wOSAwMDo1MjozNiIsInVzZXJfaWQiOiJTaHJlZXkxMTIxIiwiaXAiOiIxMDEuMTAuMTA4LjQ5In0.BJR70raTSWb92oQACG45e6pLmKxS-5haNZpB8WtqAkA
     volumes:
+      - ./src:/app/src
       - ./logs:/app/logs
       - ./data:/app/data
       - ./certs:/app/certs
