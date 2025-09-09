@@ -653,21 +653,66 @@ class FubonAPIClient:
                 "price": price,
             }
 
+    def get_real_time_price(self, symbol: str) -> Optional[float]:
+        """
+        獲取即時股價
+        
+        Args:
+            symbol: 股票代碼
+            
+        Returns:
+            float: 當前股價，如果失敗則返回None
+        """
+        if not self.is_connected:
+            logger.warning("未連接行情，無法獲取即時價格")
+            return None
+            
+        try:
+            if SDK_AVAILABLE and self.sdk:
+                # 使用 REST API 獲取即時報價
+                rest_stock = self.sdk.marketdata.rest_client.stock
+                result = rest_stock.intraday.quote(symbol=symbol)
+                
+                if result and "data" in result and result["data"]:
+                    data = result["data"]
+                    # 獲取當前價格（可能是成交價、委買價或委賣價）
+                    current_price = data.get("price") or data.get("close") or data.get("last")
+                    
+                    if current_price is not None:
+                        logger.debug(f"獲取 {symbol} 即時價格: {current_price}")
+                        return float(current_price)
+                    else:
+                        logger.warning(f"無法從API回應中提取 {symbol} 的價格")
+                        return None
+                else:
+                    logger.warning(f"API返回空數據: {symbol}")
+                    return None
+            else:
+                # 模擬模式
+                import random
+                mock_price = 100 + random.uniform(-10, 10)
+                logger.debug(f"模擬模式：{symbol} 即時價格 = {mock_price:.2f}")
+                return mock_price
+                
+        except Exception as e:
+            logger.error(f"獲取即時價格失敗 {symbol}: {e}")
+            return None
+
     def is_pre_market_time(self) -> bool:
         """
         檢查是否為開盤前時間（可以進行預單）
-
+        
         Returns:
             bool: 是否為開盤前時間
         """
         taiwan_tz = pytz.timezone("Asia/Taipei")
         now = datetime.now(taiwan_tz)
-
+        
         # 週一到週五
         weekday = now.weekday()
         if weekday >= 5:  # 週末
             return False
-
+            
         time_str = now.strftime("%H:%M")
         # 開盤前時間：07:00-08:59（可以進行預單）
         return "07:00" <= time_str <= "08:59"

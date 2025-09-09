@@ -61,7 +61,11 @@ class TradingOrchestrator:
             self.modules["risk_manager"] = RiskManager(self.config)
 
             # 初始化市場監控器
-            self.modules["market_monitor"] = MarketMonitor(self.config)
+            self.modules["market_monitor"] = MarketMonitor(
+                self.config, 
+                fubon_client=self.modules["auto_trader"].fubon_client,
+                data_fetcher=self.modules["data_fetcher"]
+            )
 
             # 初始化開盤前分析器
             self.modules["pre_market_analyzer"] = PreMarketAnalyzer(self.config)

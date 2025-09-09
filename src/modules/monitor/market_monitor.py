@@ -38,9 +38,11 @@ class MarketStatus:
 class MarketMonitor:
     """市場監控器"""
 
-    def __init__(self, config: Dict):
+    def __init__(self, config: Dict, fubon_client=None, data_fetcher=None):
         """初始化市場監控器"""
         self.config = config
+        self.fubon_client = fubon_client
+        self.data_fetcher = data_fetcher
         self.running = False
 
         # 監控配置
@@ -224,11 +226,48 @@ class MarketMonitor:
     def _get_current_price(self, symbol: str) -> Optional[float]:
         """獲取當前價格"""
         try:
-            # 這裡應該從富邦證券 API 獲取實時價格
-            # 暫時返回模擬價格
-            import random
-
-            return 100 + random.uniform(-5, 5)
+            # 檢查是否在開盤時間
+            from datetime import datetime as dt
+            if not self._is_market_open(dt.now()):
+                logger.debug(f"非開盤時間，跳過價格查詢: {symbol}")
+                return None
+                
+            # 使用富邦SDK獲取即時報價
+            if hasattr(self, 'fubon_client') and self.fubon_client:
+                # 嘗試從富邦API獲取即時價格
+                real_time_price = self.fubon_client.get_real_time_price(symbol)
+                if real_time_price is not None:
+                    return real_time_price
+                    
+            # 如果富邦API不可用，則使用FinMind或其他數據源
+            logger.warning(f"富邦API不可用，使用備用數據源獲取 {symbol} 價格")
+            
+            # 備用方案：從FinMind獲取最新價格
+            if hasattr(self, 'data_fetcher') and self.data_fetcher:
+                try:
+                    # 獲取最新的價格數據
+                    from datetime import datetime as dt, timedelta
+                    end_date = dt.now().strftime('%Y-%m-%d')
+                    start_date = (dt.now() - timedelta(days=1)).strftime('%Y-%m-%d')
+                    
+                    df = self.data_fetcher.get_stock_data(symbol, start_date, end_date)
+                    if df is not None and not df.empty:
+                        # 返回最新的收盤價
+                        latest_price = df.iloc[-1]['close']
+                        logger.debug(f"使用備用數據源獲取 {symbol} 價格: {latest_price}")
+                        return float(latest_price)
+                except Exception as e:
+                    logger.warning(f"備用數據源獲取失敗: {e}")
+            
+            # 最後備用方案：使用模擬價格（僅在開發環境）
+            if self.config.get("trading", {}).get("real_trading", True) == False:
+                import random
+                mock_price = 100 + random.uniform(-5, 5)
+                logger.debug(f"模擬模式：{symbol} 價格 = {mock_price:.2f}")
+                return mock_price
+            
+            logger.error(f"無法獲取 {symbol} 的價格")
+            return None
 
         except Exception as e:
             logger.error(f"獲取價格失敗: {e}")
