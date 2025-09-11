@@ -30,7 +30,10 @@ services:
 
   # 自動交易系統
   trading_system:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile
+    platform: linux/amd64
     container_name: auto_trading_system
     environment:
       - PYTHONPATH=/app/src
