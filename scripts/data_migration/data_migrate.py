@@ -286,6 +286,52 @@ def convert_daily_to_4h_kline_range(df_daily: pd.DataFrame) -> pd.DataFrame:
         return pd.DataFrame()
 
 
+def get_latest_data_date(fetcher: FinMindFetcher, stock_id: str) -> str:
+    """
+    獲取數據庫中股票的最新數據日期
+
+    Args:
+        fetcher: FinMind 數據獲取器
+        stock_id: 股票代碼
+
+    Returns:
+        str: 最新數據日期 (YYYY-MM-DD)，如果沒有數據則返回 None
+    """
+    try:
+        if not fetcher.connect_database():
+            logger.error("無法連接到數據庫")
+            return None
+
+        cursor = fetcher.db_conn.cursor()
+
+        # 查詢最新價格數據日期
+        cursor.execute(
+            """
+            SELECT MAX(timestamp) 
+            FROM price_data 
+            WHERE symbol = %s
+            """,
+            (stock_id,),
+        )
+        result = cursor.fetchone()
+
+        cursor.close()
+
+        if result and result[0]:
+            latest_date = result[0].strftime("%Y-%m-%d")
+            logger.info(f"股票 {stock_id} 最新數據日期: {latest_date}")
+            return latest_date
+        else:
+            logger.info(f"股票 {stock_id} 在數據庫中沒有數據")
+            return None
+
+    except Exception as e:
+        logger.error(f"查詢股票 {stock_id} 最新數據日期時發生錯誤: {e}")
+        return None
+    finally:
+        fetcher.close_database()
+
+
 def verify_data_in_db(fetcher: FinMindFetcher, stock_id: str):
     """
     驗證數據庫中的數據
@@ -398,30 +444,96 @@ def main():
         # 開始數據遷移
         print("\n--- 開始數據遷移 ---")
 
-        # 遷移台積電的歷史數據
-        stock_id = "2330"  # 台積電
-        start_date = "2022-01-01"  # 從 2022 年開始
-        end_date = "2025-08-29"  # 到 2025/8/29
+        # 從配置中獲取股票池
+        stock_pool = config.get("trading", {}).get("stock_pool", [])
+        if not stock_pool:
+            print("❌ 配置文件中沒有找到股票池 (trading.stock_pool)")
+            return
 
-        print(f"遷移股票: {stock_id}")
-        print(f"日期範圍: {start_date} 到 {end_date}")
+        print(f"股票池: {stock_pool}")
+        print(f"共 {len(stock_pool)} 支股票需要處理")
 
-        # 執行遷移
-        success = migrate_single_stock_range(fetcher, stock_id, start_date, end_date)
+        # 獲取今天的日期
+        today = datetime.now().strftime("%Y-%m-%d")
+        print(f"目標日期: {today}")
 
-        if success:
-            print(f"✅ 股票 {stock_id} 數據遷移成功")
+        # 統計變量
+        success_count = 0
+        total_count = len(stock_pool)
 
-            # 驗證數據
-            print("\n--- 驗證數據 ---")
-            verify_success = verify_data_in_db(fetcher, stock_id)
+        # 遍歷股票池進行遷移
+        for i, stock_id in enumerate(stock_pool, 1):
+            print(f"\n--- 處理股票 {stock_id} ({i}/{total_count}) ---")
 
-            if verify_success:
-                print("✅ 數據驗證完成")
-            else:
-                print("❌ 數據驗證失敗")
+            try:
+                # 檢查數據庫中是否已有數據
+                latest_date = get_latest_data_date(fetcher, stock_id)
+
+                if latest_date:
+                    # 有數據，從最後一筆數據的次日開始遷移
+                    start_date = (
+                        datetime.strptime(latest_date, "%Y-%m-%d") + timedelta(days=1)
+                    ).strftime("%Y-%m-%d")
+                    print(
+                        f"股票 {stock_id} 已有數據到 {latest_date}，從 {start_date} 開始遷移"
+                    )
+
+                    # 檢查是否需要遷移（如果最新日期已經是今天或昨天，可能不需要遷移）
+                    if start_date > today:
+                        print(f"✅ 股票 {stock_id} 數據已是最新，跳過遷移")
+                        success_count += 1
+                        continue
+
+                    # 如果開始日期太早（超過30天前），限制遷移範圍以避免過大的數據量
+                    start_datetime = datetime.strptime(start_date, "%Y-%m-%d")
+                    today_datetime = datetime.strptime(today, "%Y-%m-%d")
+                    days_diff = (today_datetime - start_datetime).days
+
+                    if days_diff > 30:
+                        # 限制為最近30天
+                        start_date = (today_datetime - timedelta(days=30)).strftime(
+                            "%Y-%m-%d"
+                        )
+                        print(
+                            f"⚠️ 股票 {stock_id} 需要遷移的數據過多（{days_diff}天），限制為最近30天"
+                        )
+                else:
+                    # 沒有數據，從2022年開始遷移
+                    start_date = "2022-01-01"
+                    print(f"股票 {stock_id} 沒有歷史數據，從 {start_date} 開始遷移")
+
+                # 執行遷移
+                success = migrate_single_stock_range(
+                    fetcher, stock_id, start_date, today
+                )
+
+                if success:
+                    print(f"✅ 股票 {stock_id} 數據遷移成功")
+                    success_count += 1
+
+                    # 驗證數據
+                    print(f"驗證股票 {stock_id} 的數據...")
+                    verify_success = verify_data_in_db(fetcher, stock_id)
+
+                    if verify_success:
+                        print(f"✅ 股票 {stock_id} 數據驗證完成")
+                    else:
+                        print(f"❌ 股票 {stock_id} 數據驗證失敗")
+                else:
+                    print(f"❌ 股票 {stock_id} 數據遷移失敗")
+
+            except Exception as e:
+                logger.error(f"處理股票 {stock_id} 時發生錯誤: {e}")
+                print(f"❌ 處理股票 {stock_id} 時發生錯誤: {e}")
+
+        # 顯示最終結果
+        print(f"\n--- 數據遷移完成 ---")
+        print(f"成功處理: {success_count}/{total_count} 支股票")
+
+        if success_count == total_count:
+            print("🎉 所有股票數據遷移成功！")
         else:
-            print(f"❌ 股票 {stock_id} 數據遷移失敗")
+            print(f"⚠️ 有 {total_count - success_count} 支股票遷移失敗")
 
     except Exception as e:
         logger.error(f"數據遷移過程中發生錯誤: {e}")

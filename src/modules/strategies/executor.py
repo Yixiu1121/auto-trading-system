@@ -18,6 +18,8 @@ from .green_long import GreenLongStrategy
 from .green_short import GreenShortStrategy
 from .orange_long import OrangeLongStrategy
 from .orange_short import OrangeShortStrategy
+from ..technical_indicators.calculator import TechnicalIndicatorCalculator
+from ..technical_indicators.storage import TechnicalIndicatorStorage
 
 
 class StrategyExecutor:
@@ -67,6 +69,149 @@ class StrategyExecutor:
         if self.db_conn:
             self.db_conn.close()
             logger.info("數據庫連接已關閉")
+
+    def check_connection(self) -> Dict:
+        """
+        檢查數據庫連接狀態
+
+        Returns:
+            Dict: 包含連接狀態的字典
+        """
+        try:
+            if self.db_conn is None:
+                # 嘗試連接數據庫
+                if self.connect_database():
+                    return {"connected": True, "status": "connected"}
+                else:
+                    return {"connected": False, "status": "connection_failed"}
+
+            # 檢查現有連接是否有效
+            cursor = self.db_conn.cursor()
+            cursor.execute("SELECT 1")
+            cursor.fetchone()
+            cursor.close()
+
+            return {"connected": True, "status": "connected"}
+
+        except Exception as e:
+            logger.error(f"數據庫連接檢查失敗: {e}")
+            return {"connected": False, "status": "connection_error", "error": str(e)}
+
+    def calculate_indicators(self, stock_id: str) -> bool:
+        """
+        計算並存儲技術指標
+
+        Args:
+            stock_id: 股票代碼
+
+        Returns:
+            bool: 計算和存儲是否成功
+        """
+        try:
+            logger.info(f"開始計算股票 {stock_id} 的技術指標...")
+
+            # 創建技術指標計算器和存儲器
+            calculator = TechnicalIndicatorCalculator()
+            storage = TechnicalIndicatorStorage(self.db_config)
+
+            # 連接數據庫
+            if not storage.connect_database():
+                logger.error("無法連接到數據庫")
+                return False
+
+            # 獲取價格數據
+            df_price = self._get_price_data_from_db(stock_id)
+            if df_price is None or df_price.empty:
+                logger.error(f"無法獲取股票 {stock_id} 的價格數據")
+                return False
+
+            # 計算技術指標
+            logger.info("開始計算技術指標...")
+            df_indicators = calculator.calculate_all_indicators(df_price)
+
+            if df_indicators is None or df_indicators.empty:
+                logger.error(f"無法計算股票 {stock_id} 的技術指標")
+                return False
+
+            # 存儲技術指標到數據庫
+            logger.info("開始存儲技術指標到數據庫...")
+            success = storage.store_technical_indicators(stock_id, df_indicators)
+
+            if success:
+                logger.info(f"✅ 股票 {stock_id} 技術指標計算和存儲成功")
+                return True
+            else:
+                logger.error(f"❌ 股票 {stock_id} 技術指標存儲失敗")
+                return False
+
+        except Exception as e:
+            logger.error(f"計算股票 {stock_id} 技術指標時發生錯誤: {e}")
+            return False
+        finally:
+            if "storage" in locals():
+                storage.close_database()
+
+    def _get_price_data_from_db(self, stock_id: str) -> Optional[pd.DataFrame]:
+        """
+        從數據庫獲取價格數據
+
+        Args:
+            stock_id: 股票代碼
+
+        Returns:
+            包含價格數據的 DataFrame，如果失敗則返回 None
+        """
+        try:
+            if not self.connect_database():
+                logger.error("無法連接到數據庫")
+                return None
+
+            cursor = self.db_conn.cursor()
+
+            # 查詢價格數據
+            query = """
+            SELECT symbol, timestamp, open_price, high, low, close, volume, period, created_at
+            FROM price_data 
+            WHERE symbol = %s
+            ORDER BY timestamp ASC
+            """
+
+            cursor.execute(query, (stock_id,))
+            results = cursor.fetchall()
+
+            if results:
+                # 創建 DataFrame
+                columns = [
+                    "symbol",
+                    "date",
+                    "open",
+                    "high",
+                    "low",
+                    "close",
+                    "volume",
+                    "period",
+                    "created_at",
+                ]
+                df = pd.DataFrame(results, columns=columns)
+
+                # 轉換數據類型
+                df["date"] = pd.to_datetime(df["date"])
+                numeric_columns = ["open", "high", "low", "close", "volume"]
+                for col in numeric_columns:
+                    df[col] = pd.to_numeric(df[col], errors="coerce")
+
+                logger.info(f"成功從數據庫獲取 {stock_id} 的 {len(df)} 筆價格數據")
+                return df
+            else:
+                logger.warning(f"股票 {stock_id} 沒有找到價格數據")
+                return None
+
+        except Exception as e:
+            logger.error(f"從數據庫獲取價格數據時發生錯誤: {e}")
+            return None
+        finally:
+            if cursor:
+                cursor.close()
 
     def get_combined_data(
         self, stock_id: str, start_date: str = None, end_date: str = None

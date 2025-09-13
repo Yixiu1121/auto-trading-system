@@ -86,7 +86,7 @@ class TradingOrchestrator:
 
         # 每日收盤後清理 (台灣時間 14:00)
         schedule.every().day.at("14:00", tz=taiwan_tz).do(self._post_market_cleanup)
-        
+
         # 每日收盤後更新數據 (台灣時間 14:30)
         schedule.every().day.at("14:30", tz=taiwan_tz).do(self._update_daily_data)
 
@@ -518,44 +518,44 @@ class TradingOrchestrator:
         """更新每日數據"""
         try:
             logger.info("開始每日數據更新...")
-            
+
             # 獲取數據獲取器
             data_fetcher = self.modules.get("data_fetcher")
             if not data_fetcher:
                 logger.error("數據獲取器不可用，跳過數據更新")
                 return
-            
+
             # 執行每日數據更新
             success = data_fetcher.update_daily_data()
-            
+
             if success:
                 logger.info("每日數據更新完成")
-                
+
                 # 更新完數據後，重新計算技術指標
                 self._update_technical_indicators()
-                
+
             else:
                 logger.error("每日數據更新失敗")
-                
+
         except Exception as e:
             logger.error(f"每日數據更新過程失敗: {e}")
-    
+
     def _update_technical_indicators(self):
         """更新技術指標"""
         try:
             logger.info("開始更新技術指標...")
-            
+
             # 獲取策略執行器
             strategy_executor = self.modules.get("strategy_executor")
             if not strategy_executor:
                 logger.error("策略執行器不可用，跳過技術指標更新")
                 return
-            
+
             # 更新技術指標（這裡可以添加具體的技術指標更新邏輯）
             # 例如重新計算移動平均線、RSI等指標
-            
+
             logger.info("技術指標更新完成")
-            
+
         except Exception as e:
             logger.error(f"技術指標更新失敗: {e}")
 
@@ -593,7 +593,7 @@ class TradingOrchestrator:
     def trigger_data_update(self) -> bool:
         """
         手動觸發數據更新
-        
+
         Returns:
             bool: 更新是否成功
         """
